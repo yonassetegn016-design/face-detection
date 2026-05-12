@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance Records</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>📊 Attendance Records</h1>
+
+    <table>
+        <tr>
+            <th>Name / ID</th>
+            <th>Time</th>
+            <th>Date</th>
+        </tr>
+
+        <!-- Flask will fill this dynamically -->
+        {% for row in attendance %}
+        <tr>
+            <td>{{ row.name or row.id }}</td>
+            <td>{{ row.time }}</td>
+            <td>{{ row.date }}</td>
+        </tr>
+        {% endfor %}
+
+    </table>
+
+    <a href="/" class="btn">⬅ Back to Home</a>
+
+</div>
+
+</body>
+</html>

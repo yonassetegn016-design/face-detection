@@ -1,0 +1,12 @@
+flask
+opencv-python
+opencv-contrib-python
+numpy
+pandas
+openpyxl
+matplotlib
+seaborn
+scikit-learn
+pillow
+imutils
+tqdm

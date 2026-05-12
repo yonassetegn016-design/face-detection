@@ -1,0 +1,304 @@
+:root {
+  --bg: #f6f8fb;
+  --card: #ffffff;
+  --muted: #6b7280;
+  --accent: #2563eb;
+  --accent-600: #1d4ed8;
+}
+
+* {
+  box-sizing: border-box
+}
+
+body {
+  font-family: Inter, Segoe UI, Helvetica, Arial, sans-serif;
+  background: var(--bg);
+  color: #111827;
+  margin: 0;
+}
+
+.container {
+  max-width: 1000px;
+  margin: 48px auto;
+  background: var(--card);
+  padding: 28px;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(2, 6, 23, 0.08);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px
+}
+
+.lead {
+  color: var(--muted);
+  margin-top: 4px
+}
+
+.actions {
+  margin-left: auto
+}
+
+.btn {
+  display: inline-block;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600
+}
+
+.btn:hover {
+  background: var(--accent-600)
+}
+
+.instructions {
+  margin-top: 18px;
+  padding: 14px 0;
+  border-top: 1px solid #eef2f7
+}
+
+.attendance {
+  margin-top: 18px
+}
+
+.table-wrap {
+  overflow: auto;
+  margin-top: 12px
+}
+
+table.striped {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px
+}
+
+table.striped thead th {
+  background: #fafafa;
+  color: #374151;
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e6edf3
+}
+
+table.striped tbody td {
+  padding: 12px;
+  border-bottom: 1px solid #f1f5f9
+}
+
+table.striped tbody tr:nth-child(odd) {
+  background: #fff
+}
+
+table.striped tbody tr:nth-child(even) {
+  background: #fbfdff
+}
+
+.footer {
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 13px
+}
+
+@media (max-width:640px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start
+  }
+
+  .actions {
+    margin-left: 0;
+    margin-top: 8px
+  }
+}
+
+/* --- User-provided simplified styles below --- */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  background: #f4f6f9;
+}
+
+/* Container */
+.container {
+  width: 90%;
+  margin: auto;
+  text-align: center;
+}
+
+/* Header */
+header {
+  background: #2c3e50;
+  color: white;
+  padding: 20px;
+  border-radius: 10px;
+  margin-top: 10px;
+}
+
+/* Navigation */
+nav {
+  margin: 20px;
+}
+
+nav a {
+  text-decoration: none;
+  margin: 10px;
+  padding: 10px 20px;
+  background: #3498db;
+  color: white;
+  border-radius: 5px;
+}
+
+nav a:hover {
+  background: #2980b9;
+}
+
+/* Cards */
+.cards {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  width: 30%;
+  border-radius: 10px;
+  box-shadow: 0px 0px 10px #ccc;
+}
+
+/* Camera */
+.camera-section {
+  margin-top: 30px;
+}
+
+.camera-box {
+  width: 70%;
+  border: 5px solid #2c3e50;
+  border-radius: 10px;
+}
+
+/* Table */
+table {
+  width: 80%;
+  margin: auto;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+table,
+th,
+td {
+  border: 1px solid #ccc;
+}
+
+th {
+  background: #2c3e50;
+  color: white;
+  padding: 10px;
+}
+
+td {
+  padding: 10px;
+  background: white;
+}
+
+/* Button */
+.btn {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #27ae60;
+  color: white;
+  text-decoration: none;
+  border-radius: 5px;
+}
+
+.btn:hover {
+  background: #1e8449;
+}
+
+/* Footer */
+footer {
+  margin-top: 30px;
+  padding: 10px;
+  background: #2c3e50;
+  color: white;
+  border-radius: 10px;
+}
+
+@media (max-width:800px) {
+  .cards {
+    flex-direction: column;
+    gap: 12px
+  }
+
+  .card {
+    width: 100%
+  }
+
+  .camera-box {
+    width: 100%
+  }
+}
+
+/* PRO DESIGN */
+.hero {
+  background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+  padding: 80px 20px;
+}
+
+.hero h1 {
+  font-size: 45px;
+}
+
+.card {
+  border-radius: 15px;
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: scale(1.05);
+}
+
+.camera-box {
+  width: 70%;
+  border-radius: 15px;
+  border: 5px solid #2c5364;
+  box-shadow: 0px 0px 20px gray;
+}
+
+body {
+  background: #f4f6f9;
+}
+
+/* How it works timeline */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.step {
+  background: white;
+  width: 70%;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0px 5px 20px rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+}
+
+.step:hover {
+  transform: scale(1.03);
+  background: #f0f8ff;
+}
+
+.step h4 {
+  color: #2c3e50;
+}
