@@ -18,6 +18,7 @@
             padding: 0;
             box-sizing: border-box;
         }
+        
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -715,6 +716,35 @@ document.addEventListener('visibilitychange', () => {
         }
         loadStatistics();
     }
+});
+</script>
+<script>
+// ================= DEPLOYMENT CAMERA FIX (ADDED ONLY) =================
+
+// Request browser camera permission (deployment safety fix)
+(function () {
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            // stop browser camera (Flask/OpenCV handles video)
+            stream.getTracks().forEach(track => track.stop());
+        })
+        .catch(err => {
+            console.log("Camera permission issue:", err);
+        });
+    }
+})();
+
+// Auto-reload /video stream if it fails
+window.addEventListener("load", function () {
+    const camera = document.getElementById("cameraFeed");
+    if (!camera) return;
+
+    camera.onerror = function () {
+        setTimeout(() => {
+            camera.src = "/video?t=" + new Date().getTime();
+        }, 2000);
+    };
 });
 </script>
 
