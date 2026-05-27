@@ -21,6 +21,7 @@
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             overflow-x: hidden;
+            background: #f5f5f5;
         }
 
         .hero {
@@ -36,19 +37,15 @@
         }
 
         .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         }
 
         .camera-container {
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            background: #000;
             border-radius: 20px;
-            padding: 20px;
+            overflow: hidden;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
 
         #video {
@@ -57,8 +54,11 @@
             height: auto;
             border-radius: 15px;
             border: 3px solid #00ff88;
+            box-shadow: 0 0 20px rgba(0,255,136,0.3);
             background: #000;
-            transform: scaleX(-1);
+        }
+
+        #canvas {
             display: none;
         }
 
@@ -83,13 +83,14 @@
         }
 
         .step {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            background: white;
             border-radius: 15px;
             padding: 25px;
             text-align: center;
             flex: 1;
             min-width: 180px;
             transition: transform 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
 
         .step:hover {
@@ -167,37 +168,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        .alert {
-            animation: slideDown 0.5s ease;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .camera-permission-btn {
-            background: #00ff88;
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-        }
-
-        .camera-permission-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(0,255,136,0.4);
-        }
     </style>
 </head>
 
@@ -221,9 +191,9 @@
 <section class="hero text-center text-white">
     <div class="container">
         <h1 class="display-4 fw-bold">Face Recognition Attendance System</h1>
-        <p class="lead">Real-time Face Detection & Attendance Tracking</p>
-        <button onclick="requestCameraPermission()" class="btn btn-light btn-lg mt-3" id="requestCameraBtn">
-            <i class="fas fa-video me-2"></i>Enable Camera
+        <p class="lead">Using AI Technology for Smart Attendance Management</p>
+        <button onclick="startCamera()" class="btn btn-light btn-lg mt-4">
+            <i class="fas fa-video me-2"></i>Start Camera
         </button>
     </div>
 </section>
@@ -257,27 +227,25 @@
         <i class="fas fa-video me-2 text-danger"></i>
         Live Camera Feed
     </h2>
-    <div class="camera-container" id="cameraContainer">
-        <div class="video-placeholder" id="videoPlaceholder">
-            <i class="fas fa-camera"></i>
-            <h3>Camera Not Started</h3>
-            <p>Click the "Enable Camera" button above to start</p>
-            <button onclick="requestCameraPermission()" class="camera-permission-btn">
-                <i class="fas fa-play me-2"></i>Start Camera
-            </button>
+    <div class="camera-container">
+        <div class="text-center">
+            <video id="video" autoplay playsinline style="width: 100%; max-width: 800px; border-radius: 15px;"></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+            <div class="mt-3">
+                <button id="captureBtn" class="btn btn-capture text-white" onclick="captureAndRecognize()" disabled>
+                    <i class="fas fa-camera me-2"></i>Mark Attendance
+                </button>
+                <button id="startCameraBtn" class="btn btn-primary" onclick="startCamera()">
+                    <i class="fas fa-play me-2"></i>Start Camera
+                </button>
+                <button id="stopCameraBtn" class="btn btn-danger" onclick="stopCamera()" style="display: none;">
+                    <i class="fas fa-stop me-2"></i>Stop Camera
+                </button>
+            </div>
+            <div id="statusMessage" class="mt-3"></div>
+            <div id="recognitionResult" class="mt-3"></div>
         </div>
-        <video id="video" autoplay playsinline muted style="display: none;"></video>
     </div>
-    <div class="text-center mt-3">
-        <button id="captureBtn" class="btn btn-capture text-white" onclick="captureAndRecognize()" disabled>
-            <i class="fas fa-camera me-2"></i>Mark Attendance
-        </button>
-        <button id="stopCameraBtn" class="btn btn-danger" onclick="stopCamera()" style="display: none;">
-            <i class="fas fa-stop me-2"></i>Stop Camera
-        </button>
-    </div>
-    <div id="statusMessage" class="mt-3 text-center"></div>
-    <div id="recognitionResult" class="mt-3 text-center"></div>
 </section>
 
 <!-- HOW IT WORKS -->
@@ -286,23 +254,23 @@
     <div class="timeline">
         <div class="step">
             <i class="fas fa-camera fa-3x mb-3 text-primary"></i>
-            <h4>1. Enable Camera</h4>
-            <p>Click "Enable Camera" and allow permission</p>
+            <h4>📸 Start Camera</h4>
+            <p>Allow camera access and position your face clearly</p>
         </div>
         <div class="step">
-            <i class="fas fa-face-smile fa-3x mb-3 text-success"></i>
-            <h4>2. Face Detection</h4>
-            <p>AI detects your face in real-time</p>
+            <i class="fas fa-user-check fa-3x mb-3 text-success"></i>
+            <h4>👤 Click Capture</h4>
+            <p>Click "Mark Attendance" to capture your face</p>
         </div>
         <div class="step">
             <i class="fas fa-microchip fa-3x mb-3 text-info"></i>
-            <h4>3. Recognition</h4>
-            <p>System identifies who you are</p>
+            <h4>🧠 AI Recognition</h4>
+            <p>System recognizes your face using AI</p>
         </div>
         <div class="step">
             <i class="fas fa-save fa-3x mb-3 text-warning"></i>
-            <h4>4. Mark Attendance</h4>
-            <p>Click button to mark attendance</p>
+            <h4>📊 Save Record</h4>
+            <p>Attendance is saved with timestamp</p>
         </div>
     </div>
 </section>
@@ -352,24 +320,11 @@
 let video = null;
 let stream = null;
 let isCameraRunning = false;
+let detectionInterval = null;
 
-// ==================== REQUEST CAMERA PERMISSION ====================
-async function requestCameraPermission() {
-    const statusDiv = document.getElementById('statusMessage');
-    const requestBtn = document.getElementById('requestCameraBtn');
-    
-    statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>Requesting camera access...</div>';
-    requestBtn.disabled = true;
-    requestBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Requesting...';
-    
+// Start camera
+async function startCamera() {
     try {
-        // First, check if permissions API is supported
-        if (navigator.permissions) {
-            const permissionStatus = await navigator.permissions.query({ name: 'camera' });
-            console.log('Camera permission state:', permissionStatus.state);
-        }
-        
-        // Request camera with specific constraints
         const constraints = {
             video: {
                 width: { ideal: 640 },
@@ -382,67 +337,32 @@ async function requestCameraPermission() {
         console.log('Requesting camera with constraints:', constraints);
         
         stream = await navigator.mediaDevices.getUserMedia(constraints);
-        console.log('Camera stream obtained successfully');
-        
-        // Initialize video element
         video = document.getElementById('video');
         video.srcObject = stream;
-        
-        // Wait for video to be ready
-        await new Promise((resolve) => {
-            video.onloadedmetadata = () => {
-                console.log('Video metadata loaded');
-                resolve();
-            };
-        });
         
         await video.play();
         console.log('Video playing');
         
         isCameraRunning = true;
         
-        // Show video, hide placeholder
-        video.style.display = 'block';
-        document.getElementById('videoPlaceholder').style.display = 'none';
-        
-        // Enable capture button
         document.getElementById('captureBtn').disabled = false;
         document.getElementById('stopCameraBtn').style.display = 'inline-block';
-        document.getElementById('requestCameraBtn').style.display = 'none';
         
-        statusDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Camera started successfully! Face detected will be highlighted.</div>';
-        
-        // Start face detection
-        startFaceDetection();
-        
-        setTimeout(() => {
-            statusDiv.innerHTML = '';
-        }, 3000);
+        showStatus('Camera started successfully!', 'success');
         
     } catch (error) {
-        console.error('Camera error details:', error);
-        
-        let errorMessage = 'Unable to access camera. ';
-        if (error.name === 'NotAllowedError') {
-            errorMessage += 'Please grant camera permission in your browser settings.';
-        } else if (error.name === 'NotFoundError') {
-            errorMessage += 'No camera found on this device.';
-        } else if (error.name === 'NotReadableError') {
-            errorMessage += 'Camera is already in use by another application.';
-        } else {
-            errorMessage += error.message;
-        }
-        
-        statusDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>${errorMessage}</div>`;
-        
-    } finally {
-        requestBtn.disabled = false;
-        requestBtn.innerHTML = '<i class="fas fa-video me-2"></i>Enable Camera';
+        console.error('Camera error:', error);
+        showStatus('Unable to access camera. Please ensure you have granted camera permissions.', 'danger');
     }
 }
 
-// ==================== STOP CAMERA ====================
+// Stop camera
 function stopCamera() {
+    if (detectionInterval) {
+        clearInterval(detectionInterval);
+        detectionInterval = null;
+    }
+    
     if (stream) {
         stream.getTracks().forEach(track => {
             track.stop();
@@ -454,49 +374,17 @@ function stopCamera() {
         video.srcObject = null;
         video.style.display = 'none';
     }
-    
     isCameraRunning = false;
     
-    // Show placeholder
-    document.getElementById('videoPlaceholder').style.display = 'block';
     document.getElementById('captureBtn').disabled = true;
+    document.getElementById('startCameraBtn').style.display = 'inline-block';
     document.getElementById('stopCameraBtn').style.display = 'none';
-    document.getElementById('requestCameraBtn').style.display = 'inline-block';
     
+    addConsoleLog('Camera stopped', 'info');
     showStatus('Camera stopped', 'info');
 }
 
-// ==================== FACE DETECTION ====================
-async function startFaceDetection() {
-    if (!isCameraRunning) return;
-    
-    // Simple face detection using canvas (no external library needed)
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    async function detect() {
-        if (!isCameraRunning || !video || video.readyState !== 4) {
-            requestAnimationFrame(detect);
-            return;
-        }
-        
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        // Get image data for simple skin tone detection
-        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        
-        // For now, just show that detection is active
-        // In production, you'd use face-api.js or similar
-        
-        requestAnimationFrame(detect);
-    }
-    
-    detect();
-}
-
-// ==================== CAPTURE AND RECOGNIZE ====================
+// Capture and recognize face
 async function captureAndRecognize() {
     if (!isCameraRunning || !video || video.readyState !== 4) {
         showStatus('Please start the camera first', 'warning');
@@ -509,37 +397,33 @@ async function captureAndRecognize() {
     captureBtn.disabled = true;
     
     try {
-        // Capture frame from video
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const imageData = canvas.toDataURL('image/jpeg', 0.8);
-        
-        // Send to server for face detection and attendance
+        // Send to server for face detection/recognition
         const response = await fetch('/api/recognize-face', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ image: imageData })
         });
         
         const result = await response.json();
         
         if (result.success) {
+            addConsoleLog(`✅ Attendance marked for ${result.name} (ID: ${result.id}) - Confidence: ${result.confidence}%`, 'success');
             showStatus(`✅ ${result.message}`, 'success');
+            
+            // Draw success circle
+            drawGreenCircle(video.videoWidth / 2, video.videoHeight / 2, 100, result.name, result.confidence);
+            
             document.getElementById('recognitionResult').innerHTML = `
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle me-2"></i>
-                    <strong>${result.name || 'Student'}</strong><br>
-                    Attendance marked at ${new Date().toLocaleTimeString()}
+                    <strong>${result.name || 'Student'}</strong> - Attendance marked at ${result.time || new Date().toLocaleTimeString()}
                 </div>
             `;
-            loadStatistics(); // Refresh stats
+            loadStatistics();
+            
+            setTimeout(() => clearOverlay(), 2000);
         } else {
+            addConsoleLog(`❌ Recognition failed: ${result.message}`, 'error');
             showStatus(`❌ ${result.message}`, 'danger');
             document.getElementById('recognitionResult').innerHTML = `
                 <div class="alert alert-warning">
@@ -550,6 +434,7 @@ async function captureAndRecognize() {
         }
     } catch (error) {
         console.error('Recognition error:', error);
+        addConsoleLog(`Error: ${error.message}`, 'error');
         showStatus('Error during face recognition. Please try again.', 'danger');
     } finally {
         captureBtn.innerHTML = originalText;
@@ -598,6 +483,7 @@ async function exportData(format) {
         
         statusDiv.className = 'alert alert-success';
         statusDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i> Export successful!';
+        addConsoleLog(`Exported attendance data as ${format.toUpperCase()}`, 'success');
         setTimeout(() => statusDiv.style.display = 'none', 3000);
     } catch (error) {
         statusDiv.className = 'alert alert-danger';
@@ -641,35 +527,19 @@ function setupScrollToTop() {
     });
 }
 
-// ==================== CHECK CAMERA PERMISSION ON PAGE LOAD ====================
-async function checkCameraPermission() {
-    if (navigator.permissions && navigator.permissions.query) {
-        try {
-            const permissionStatus = await navigator.permissions.query({ name: 'camera' });
-            console.log('Initial camera permission:', permissionStatus.state);
-            
-            permissionStatus.onchange = () => {
-                console.log('Camera permission changed to:', permissionStatus.state);
-            };
-        } catch (err) {
-            console.log('Permissions API not fully supported');
-        }
-    }
-}
-
-// ==================== INITIALIZE ====================
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     displayTodayDate();
     loadStatistics();
     setupScrollToTop();
     checkCameraPermission();
     setInterval(loadStatistics, 10000);
-    
-    // Add Bootstrap JS
-    const script = document.createElement('script');
-    script.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js';
-    document.body.appendChild(script);
 });
+
+// Add Bootstrap JS
+const script = document.createElement('script');
+script.src = 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js';
+document.body.appendChild(script);
 </script>
 </body>
 </html>
