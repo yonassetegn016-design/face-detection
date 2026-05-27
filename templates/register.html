@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register User - Face Recognition System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .register-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+        #video {
+            width: 100%;
+            border-radius: 10px;
+            background: #000;
+            transform: scaleX(-1);
+        }
+        .preview-container {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+        }
+        .camera-placeholder {
+            background: #333;
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            color: white;
+        }
+        .btn-capture {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+        .btn-capture:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <div class="row">
+            <div class="col-md-8 mx-auto">
+                <div class="register-card">
+                    <h2 class="text-center mb-4">
+                        <i class="fas fa-user-plus me-2"></i>
+                        Register New User
+                    </h2>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">User ID:</label>
+                                <input type="text" id="userId" class="form-control" placeholder="e.g., STU001">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Full Name:</label>
+                                <input type="text" id="userName" class="form-control" placeholder="e.g., John Doe">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Status:</label>
+                                <div id="status" class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i>
+                                    Ready to register
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label">Face Capture:</label>
+                            <div class="preview-container">
+                                <video id="video" autoplay playsinline style="display: none;"></video>
+                                <div id="placeholder" class="camera-placeholder">
+                                    <div class="text-center">
+                                        <i class="fas fa-camera fa-4x mb-3"></i>
+                                        <p>Click "Start Camera" to begin</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <button onclick="startCamera()" id="startBtn" class="btn btn-primary w-100 mb-2">
+                                    <i class="fas fa-video me-2"></i>Start Camera
+                                </button>
+                                <button onclick="captureFace()" id="captureBtn" class="btn btn-capture w-100 mb-2" disabled>
+                                    <i class="fas fa-camera me-2"></i>Capture Face
+                                </button>
+                                <button onclick="stopCamera()" id="stopBtn" class="btn btn-danger w-100" style="display: none;">
+                                    <i class="fas fa-stop me-2"></i>Stop Camera
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button onclick="registerUser()" id="registerBtn" class="btn btn-success w-100 btn-lg" disabled>
+                            <i class="fas fa-save me-2"></i>Register User
+                        </button>
+                    </div>
+                    
+                    <div id="result" class="mt-3"></div>
+                    
+                    <div class="mt-3 text-center">
+                        <a href="/" class="btn btn-link">← Back to Home</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+    <script>
+        let video = null;
+        let stream = null;
+        let capturedImage = null;
+        let isCameraRunning = false;
+        
+        // Start camera
+        async function startCamera() {
+            const statusDiv = document.getElementById('status');
+            try {
+                statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>Requesting camera access...</div>';
+                
+                stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { width: 640, height: 480, facingMode: "user" } 
+                });
+                
+                video = document.getElementById('video');
+                video.srcObject = stream;
+                video.style.display = 'block';
+                document.getElementById('placeholder').style.display = 'none';
+                
+                await video.play();
+                isCameraRunning = true;
+                
+                document.getElementById('startBtn').style.display = 'none';
+                document.getElementById('stopBtn').style.display = 'block';
+                document.getElementById('captureBtn').disabled = false;
+                
+                statusDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Camera ready! Position your face and click "Capture Face".</div>';
+                
+            } catch (error) {
+                statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Camera error: ' + error.message + '</div>';
+            }
+        }
+        
+        // Stop camera
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            if (video) {
+                video.style.display = 'none';
+            }
+            document.getElementById('placeholder').style.display = 'flex';
+            isCameraRunning = false;
+            
+            document.getElementById('startBtn').style.display = 'block';
+            document.getElementById('stopBtn').style.display = 'none';
+            document.getElementById('captureBtn').disabled = true;
+            document.getElementById('registerBtn').disabled = true;
+            
+            document.getElementById('status').innerHTML = '<div class="alert alert-info"><i class="fas fa-info-circle me-2"></i>Camera stopped. Click "Start Camera" to begin registration.</div>';
+        }
+        
+        // Capture face
+        function captureFace() {
+            if (!isCameraRunning || !video) {
+                alert('Please start the camera first');
+                return;
+            }
+            
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            
+            capturedImage = canvas.toDataURL('image/jpeg', 0.8);
+            
+            // Show preview in status
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i>
+                    Face captured successfully!<br>
+                    <img src="${capturedImage}" style="max-width: 200px; margin-top: 10px; border-radius: 10px;">
+                </div>
+            `;
+            
+            document.getElementById('registerBtn').disabled = false;
+        }
+        
+        // Register user
+        async function registerUser() {
+            const userId = document.getElementById('userId').value.trim();
+            const userName = document.getElementById('userName').value.trim();
+            
+            if (!userId || !userName) {
+                alert('Please enter both User ID and Name');
+                return;
+            }
+            
+            if (!capturedImage) {
+                alert('Please capture your face first');
+                return;
+            }
+            
+            const registerBtn = document.getElementById('registerBtn');
+            const originalText = registerBtn.innerHTML;
+            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Registering...';
+            registerBtn.disabled = true;
+            
+            const formData = new FormData();
+            formData.append('id', userId);
+            formData.append('name', userName);
+            formData.append('image', capturedImage);
+            
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                const resultDiv = document.getElementById('result');
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle me-2"></i>
+                            <strong>${result.message}</strong><br>
+                            You can now use face recognition for attendance!
+                        </div>
+                    `;
+                    // Clear form
+                    document.getElementById('userId').value = '';
+                    document.getElementById('userName').value = '';
+                    capturedImage = null;
+                    document.getElementById('registerBtn').disabled = true;
+                    document.getElementById('captureBtn').disabled = true;
+                    stopCamera();
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            ${result.error}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                document.getElementById('result').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Registration failed: ${error.message}
+                    </div>
+                `;
+            } finally {
+                registerBtn.innerHTML = originalText;
+                registerBtn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
