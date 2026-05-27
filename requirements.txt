@@ -10,3 +10,4 @@ scikit-learn
 pillow
 imutils
 tqdm
+gunicorn
