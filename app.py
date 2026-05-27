@@ -8,6 +8,8 @@ import json
 import io
 import threading
 import time
+import base64
+import numpy as np
 
 app = Flask(__name__)
 
@@ -518,6 +520,56 @@ def clear_attendance():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/recognize-face', methods=['POST'])
+def recognize_face():
+    """Recognize face from uploaded image and mark attendance"""
+    try:
+        data = request.json
+        image_data = data.get('image')
+        
+        if not image_data:
+            return jsonify({'success': False, 'message': 'No image data'}), 400
+        
+        # Decode base64 image
+        if ',' in image_data:
+            image_data = image_data.split(',')[1]
+        
+        img_bytes = base64.b64decode(image_data)
+        np_arr = np.frombuffer(img_bytes, np.uint8)
+        frame = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+        
+        if frame is None:
+            return jsonify({'success': False, 'message': 'Invalid image'}), 400
+        
+        # Detect face
+        faces = detect_faces(frame)
+        
+        if len(faces) == 0:
+            return jsonify({'success': False, 'message': 'No face detected. Please position your face clearly.'})
+        
+        # For demo, check registered users
+        users = get_registered_users()
+        
+        if len(users) == 0:
+            return jsonify({'success': False, 'message': 'No registered users. Please register first.'})
+        
+        # Simple matching - for demo, use first user
+        # In production, implement proper face matching
+        user = users[0]
+        
+        # Mark attendance
+        success, message = save_attendance_record(user['id'], user['name'])
+        
+        return jsonify({
+            'success': success,
+            'message': message,
+            'name': user['name'],
+            'time': get_current_time()
+        })
+        
+    except Exception as e:
+        print(f"Recognition error: {e}")
+        return jsonify({'success': False, 'message': str(e)}), 500
 # ==================== INITIALIZATION ====================
 
 def initialize_system():
