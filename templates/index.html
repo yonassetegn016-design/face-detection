@@ -46,35 +46,26 @@
             border-radius: 20px;
             overflow: hidden;
             box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            min-height: 400px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
         }
 
         #video {
             width: 100%;
             max-width: 800px;
             height: auto;
-            border-radius: 0;
+            border-radius: 15px;
+            border: 3px solid #00ff88;
+            box-shadow: 0 0 20px rgba(0,255,136,0.3);
             background: #000;
-            transform: scaleX(-1);
         }
 
-        #overlayCanvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+        #canvas {
+            display: none;
         }
 
         .video-placeholder {
             text-align: center;
             color: white;
-            padding: 60px 20px;
+            padding: 60px;
         }
 
         .video-placeholder i {
@@ -177,61 +168,6 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        .alert {
-            animation: slideDown 0.5s ease;
-            border-radius: 10px;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .camera-permission-btn {
-            background: #00ff88;
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 50px;
-            transition: all 0.3s ease;
-        }
-
-        .camera-permission-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(0,255,136,0.4);
-        }
-
-        .recognition-badge {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0,0,0,0.7);
-            color: #00ff88;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            z-index: 10;
-        }
-
-        .console-log {
-            background: #1e1e1e;
-            color: #0f0;
-            font-family: monospace;
-            padding: 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            max-height: 150px;
-            overflow-y: auto;
-        }
     </style>
 </head>
 
@@ -255,8 +191,8 @@
 <section class="hero text-center text-white">
     <div class="container">
         <h1 class="display-4 fw-bold">Face Recognition Attendance System</h1>
-        <p class="lead">Real-time Face Detection & Attendance Tracking</p>
-        <button onclick="startCamera()" class="btn btn-light btn-lg mt-3" id="startCameraBtn">
+        <p class="lead">Using AI Technology for Smart Attendance Management</p>
+        <button onclick="startCamera()" class="btn btn-light btn-lg mt-4">
             <i class="fas fa-video me-2"></i>Start Camera
         </button>
     </div>
@@ -291,40 +227,23 @@
         <i class="fas fa-video me-2 text-danger"></i>
         Live Camera Feed
     </h2>
-    <div class="camera-container" id="cameraContainer">
-        <div id="videoPlaceholder" class="video-placeholder">
-            <i class="fas fa-camera"></i>
-            <h3>Camera Ready</h3>
-            <p>Click "Start Camera" button above to begin</p>
-            <button onclick="startCamera()" class="camera-permission-btn">
-                <i class="fas fa-play me-2"></i>Start Camera
-            </button>
-        </div>
-        <div style="position: relative; display: inline-block;">
-            <video id="video" autoplay playsinline muted style="display: none;"></video>
-            <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none;"></canvas>
-        </div>
-        <div id="recognitionBadge" class="recognition-badge" style="display: none;">
-            <i class="fas fa-circle me-1" style="font-size: 8px; color: #00ff88;"></i>
-            Face Detection Active
-        </div>
-    </div>
-    <div class="text-center mt-4">
-        <button id="captureBtn" class="btn btn-capture text-white" onclick="captureAndRecognize()" disabled>
-            <i class="fas fa-camera me-2"></i>Mark Attendance
-        </button>
-        <button id="stopCameraBtn" class="btn btn-danger" onclick="stopCamera()" style="display: none;">
-            <i class="fas fa-stop me-2"></i>Stop Camera
-        </button>
-    </div>
-    <div id="statusMessage" class="mt-3 text-center"></div>
-    <div id="recognitionResult" class="mt-3 text-center"></div>
-    
-    <!-- Console Log Display -->
-    <div class="mt-4">
-        <h5><i class="fas fa-terminal me-2"></i>Detection Console</h5>
-        <div id="consoleLog" class="console-log">
-            <span style="color: #888;">> System ready. Start camera to begin...</span>
+    <div class="camera-container">
+        <div class="text-center">
+            <video id="video" autoplay playsinline style="width: 100%; max-width: 800px; border-radius: 15px;"></video>
+            <canvas id="canvas" style="display: none;"></canvas>
+            <div class="mt-3">
+                <button id="captureBtn" class="btn btn-capture text-white" onclick="captureAndRecognize()" disabled>
+                    <i class="fas fa-camera me-2"></i>Mark Attendance
+                </button>
+                <button id="startCameraBtn" class="btn btn-primary" onclick="startCamera()">
+                    <i class="fas fa-play me-2"></i>Start Camera
+                </button>
+                <button id="stopCameraBtn" class="btn btn-danger" onclick="stopCamera()" style="display: none;">
+                    <i class="fas fa-stop me-2"></i>Stop Camera
+                </button>
+            </div>
+            <div id="statusMessage" class="mt-3"></div>
+            <div id="recognitionResult" class="mt-3"></div>
         </div>
     </div>
 </section>
@@ -335,23 +254,23 @@
     <div class="timeline">
         <div class="step">
             <i class="fas fa-camera fa-3x mb-3 text-primary"></i>
-            <h4>1. Start Camera</h4>
-            <p>Click "Start Camera" and allow permission</p>
+            <h4>📸 Start Camera</h4>
+            <p>Allow camera access and position your face clearly</p>
         </div>
         <div class="step">
-            <i class="fas fa-face-smile fa-3x mb-3 text-success"></i>
-            <h4>2. Position Face</h4>
-            <p>Look directly at the camera</p>
+            <i class="fas fa-user-check fa-3x mb-3 text-success"></i>
+            <h4>👤 Click Capture</h4>
+            <p>Click "Mark Attendance" to capture your face</p>
         </div>
         <div class="step">
             <i class="fas fa-microchip fa-3x mb-3 text-info"></i>
-            <h4>3. AI Detection</h4>
-            <p>System detects and recognizes face</p>
+            <h4>🧠 AI Recognition</h4>
+            <p>System recognizes your face using AI</p>
         </div>
         <div class="step">
             <i class="fas fa-save fa-3x mb-3 text-warning"></i>
-            <h4>4. Mark Attendance</h4>
-            <p>Click button to record attendance</p>
+            <h4>📊 Save Record</h4>
+            <p>Attendance is saved with timestamp</p>
         </div>
     </div>
 </section>
@@ -403,108 +322,9 @@ let stream = null;
 let isCameraRunning = false;
 let detectionInterval = null;
 
-// ==================== CONSOLE LOGGING ====================
-function addConsoleLog(message, type = 'info') {
-    const consoleDiv = document.getElementById('consoleLog');
-    const timestamp = new Date().toLocaleTimeString();
-    let icon = '📌';
-    let color = '#0f0';
-    
-    if (type === 'success') {
-        icon = '✅';
-        color = '#0f0';
-    } else if (type === 'error') {
-        icon = '❌';
-        color = '#f00';
-    } else if (type === 'warning') {
-        icon = '⚠️';
-        color = '#ff0';
-    } else if (type === 'detection') {
-        icon = '👤';
-        color = '#0ff';
-    }
-    
-    const logEntry = `<div style="color: ${color}; border-bottom: 1px solid #333; padding: 5px 0;">
-        <span style="color: #888;">[${timestamp}]</span> ${icon} ${message}
-    </div>`;
-    
-    consoleDiv.innerHTML += logEntry;
-    consoleDiv.scrollTop = consoleDiv.scrollHeight;
-    
-    // Also log to browser console
-    console.log(`[${timestamp}] ${message}`);
-}
-
-// ==================== DRAW GREEN CIRCLE ON FACE ====================
-function drawGreenCircle(x, y, radius, name = null, confidence = null) {
-    const canvas = document.getElementById('overlayCanvas');
-    const ctx = canvas.getContext('2d');
-    const video = document.getElementById('video');
-    
-    if (!canvas || !video) return;
-    
-    // Set canvas size to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    // Clear previous drawings
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw green circle
-    ctx.beginPath();
-    ctx.arc(x, y, radius, 0, 2 * Math.PI);
-    ctx.strokeStyle = '#00ff88';
-    ctx.lineWidth = 4;
-    ctx.stroke();
-    
-    // Draw inner circle with glow effect
-    ctx.beginPath();
-    ctx.arc(x, y, radius + 2, 0, 2 * Math.PI);
-    ctx.strokeStyle = 'rgba(0, 255, 136, 0.3)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    
-    // Draw name label if provided
-    if (name) {
-        ctx.font = 'bold 16px Arial';
-        ctx.fillStyle = '#00ff88';
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = '#00ff88';
-        ctx.fillText(name, x - 40, y - 10);
-        
-        if (confidence) {
-            ctx.font = '12px Arial';
-            ctx.fillStyle = '#ffff00';
-            ctx.fillText(`Confidence: ${confidence}%`, x - 40, y + radius + 20);
-        }
-        
-        ctx.shadowBlur = 0;
-    }
-}
-
-function clearOverlay() {
-    const canvas = document.getElementById('overlayCanvas');
-    if (canvas) {
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-}
-
-// ==================== START CAMERA ====================
+// Start camera
 async function startCamera() {
-    const statusDiv = document.getElementById('statusMessage');
-    const startBtn = document.getElementById('startCameraBtn');
-    
-    addConsoleLog('Starting camera...', 'info');
-    statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>Requesting camera access...</div>';
-    startBtn.disabled = true;
-    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Requesting...';
-    
     try {
-        if (stream) {
-            stopCamera();
-        }
-        
         const constraints = {
             video: {
                 width: { ideal: 640 },
@@ -514,114 +334,29 @@ async function startCamera() {
             audio: false
         };
         
-        stream = await navigator.mediaDevices.getUserMedia(constraints);
-        addConsoleLog('Camera access granted', 'success');
+        console.log('Requesting camera with constraints:', constraints);
         
+        stream = await navigator.mediaDevices.getUserMedia(constraints);
         video = document.getElementById('video');
         video.srcObject = stream;
         
-        await new Promise((resolve) => {
-            video.onloadedmetadata = () => resolve();
-        });
-        
         await video.play();
+        console.log('Video playing');
+        
         isCameraRunning = true;
         
-        // Show video and canvas
-        video.style.display = 'block';
-        document.getElementById('overlayCanvas').style.display = 'block';
-        document.getElementById('videoPlaceholder').style.display = 'none';
-        document.getElementById('recognitionBadge').style.display = 'block';
-        
-        // Enable buttons
         document.getElementById('captureBtn').disabled = false;
         document.getElementById('stopCameraBtn').style.display = 'inline-block';
-        startBtn.style.display = 'none';
         
-        addConsoleLog('Camera is now active. Face detection running.', 'success');
-        statusDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>Camera started! Position your face clearly.</div>';
-        
-        // Start real-time face detection
-        startRealTimeDetection();
-        
-        setTimeout(() => {
-            if (statusDiv.querySelector('.alert-success')) {
-                statusDiv.innerHTML = '';
-            }
-        }, 3000);
+        showStatus('Camera started successfully!', 'success');
         
     } catch (error) {
         console.error('Camera error:', error);
-        addConsoleLog(`Camera error: ${error.message}`, 'error');
-        
-        let errorMessage = 'Camera access failed. ';
-        if (error.name === 'NotAllowedError') {
-            errorMessage = 'Camera permission denied. Please allow camera access and refresh.';
-        } else if (error.name === 'NotFoundError') {
-            errorMessage = 'No camera found on this device.';
-        } else {
-            errorMessage += error.message;
-        }
-        
-        statusDiv.innerHTML = `<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>${errorMessage}</div>`;
-        
-    } finally {
-        startBtn.disabled = false;
-        startBtn.innerHTML = '<i class="fas fa-video me-2"></i>Start Camera';
+        showStatus('Unable to access camera. Please ensure you have granted camera permissions.', 'danger');
     }
 }
 
-// ==================== REAL-TIME FACE DETECTION ====================
-function startRealTimeDetection() {
-    if (detectionInterval) clearInterval(detectionInterval);
-    
-    detectionInterval = setInterval(async () => {
-        if (!isCameraRunning || !video || video.readyState !== 4) return;
-        
-        try {
-            // Capture frame
-            const canvas = document.createElement('canvas');
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            
-            const imageData = canvas.toDataURL('image/jpeg', 0.7);
-            
-            // Send for detection
-            const response = await fetch('/api/detect-face', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: imageData })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success && result.face_detected) {
-                // Draw green circle at detected face location
-                drawGreenCircle(
-                    result.x + result.w / 2, 
-                    result.y + result.h / 2, 
-                    result.w / 2,
-                    result.name,
-                    result.confidence
-                );
-                
-                if (result.name) {
-                    addConsoleLog(`🎯 Detected: ${result.name} (ID: ${result.id}) - Confidence: ${result.confidence}%`, 'detection');
-                } else {
-                    addConsoleLog(`👤 Face detected but not recognized`, 'warning');
-                }
-            } else {
-                clearOverlay();
-            }
-        } catch (error) {
-            // Silent fail for continuous detection
-        }
-    }, 500);
-}
-
-// ==================== STOP CAMERA ====================
+// Stop camera
 function stopCamera() {
     if (detectionInterval) {
         clearInterval(detectionInterval);
@@ -629,29 +364,27 @@ function stopCamera() {
     }
     
     if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach(track => {
+            track.stop();
+            console.log('Stopped track:', track.kind);
+        });
         stream = null;
     }
     if (video) {
         video.srcObject = null;
         video.style.display = 'none';
     }
-    
-    clearOverlay();
     isCameraRunning = false;
     
-    document.getElementById('videoPlaceholder').style.display = 'block';
-    document.getElementById('overlayCanvas').style.display = 'none';
-    document.getElementById('recognitionBadge').style.display = 'none';
     document.getElementById('captureBtn').disabled = true;
-    document.getElementById('stopCameraBtn').style.display = 'none';
     document.getElementById('startCameraBtn').style.display = 'inline-block';
+    document.getElementById('stopCameraBtn').style.display = 'none';
     
     addConsoleLog('Camera stopped', 'info');
     showStatus('Camera stopped', 'info');
 }
 
-// ==================== CAPTURE AND RECOGNIZE ====================
+// Capture and recognize face
 async function captureAndRecognize() {
     if (!isCameraRunning || !video || video.readyState !== 4) {
         showStatus('Please start the camera first', 'warning');
@@ -663,17 +396,8 @@ async function captureAndRecognize() {
     captureBtn.innerHTML = '<span class="loading-spinner"></span> Processing...';
     captureBtn.disabled = true;
     
-    addConsoleLog('Capturing face for recognition...', 'info');
-    
     try {
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const imageData = canvas.toDataURL('image/jpeg', 0.8);
-        
+        // Send to server for face detection/recognition
         const response = await fetch('/api/recognize-face', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -692,9 +416,7 @@ async function captureAndRecognize() {
             document.getElementById('recognitionResult').innerHTML = `
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle me-2"></i>
-                    <strong>${result.name}</strong><br>
-                    ID: ${result.id} | Attendance marked at ${new Date().toLocaleTimeString()}<br>
-                    Confidence: ${result.confidence}%
+                    <strong>${result.name || 'Student'}</strong> - Attendance marked at ${result.time || new Date().toLocaleTimeString()}
                 </div>
             `;
             loadStatistics();
@@ -805,13 +527,13 @@ function setupScrollToTop() {
     });
 }
 
-// ==================== INITIALIZE ====================
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
     displayTodayDate();
     loadStatistics();
     setupScrollToTop();
+    checkCameraPermission();
     setInterval(loadStatistics, 10000);
-    addConsoleLog('System initialized. Click "Start Camera" to begin.', 'success');
 });
 
 // Add Bootstrap JS
