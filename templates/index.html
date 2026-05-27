@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Face Recognition Attendance System</title>
 
     <!-- Bootstrap CDN -->
@@ -10,6 +10,10 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- face-api.js for client-side face recognition -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     
     <style>
         * {
@@ -25,7 +29,7 @@
 
         .hero {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            padding: 80px 0;
+            padding: 60px 0;
             position: relative;
         }
 
@@ -53,12 +57,13 @@
             height: auto;
             border-radius: 15px;
             border: 3px solid #00ff88;
-            box-shadow: 0 0 20px rgba(0,255,136,0.3);
             background: #000;
+            transform: scaleX(-1);
         }
 
-        #canvas {
-            display: none;
+        #overlay {
+            position: relative;
+            display: inline-block;
         }
 
         .timeline {
@@ -75,7 +80,7 @@
             padding: 25px;
             text-align: center;
             flex: 1;
-            min-width: 200px;
+            min-width: 180px;
             transition: transform 0.3s ease;
         }
 
@@ -97,7 +102,7 @@
         }
 
         .btn-capture {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             border: none;
             padding: 12px 30px;
             font-weight: bold;
@@ -106,13 +111,25 @@
 
         .btn-capture:hover {
             transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
         }
 
-        .face-detected {
+        .face-box {
             position: absolute;
             border: 2px solid #00ff88;
-            box-shadow: 0 0 10px rgba(0,255,136,0.5);
+            box-shadow: 0 0 15px rgba(0,255,136,0.5);
+            border-radius: 5px;
+            pointer-events: none;
+        }
+
+        .face-label {
+            position: absolute;
+            background: #00ff88;
+            color: #000;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            pointer-events: none;
         }
 
         @media (max-width: 768px) {
@@ -156,6 +173,13 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
     </style>
 </head>
 
@@ -179,8 +203,8 @@
 <section class="hero text-center text-white">
     <div class="container">
         <h1 class="display-4 fw-bold">Face Recognition Attendance System</h1>
-        <p class="lead">Using AI Technology for Smart Attendance Management</p>
-        <button onclick="startCamera()" class="btn btn-light btn-lg mt-4">
+        <p class="lead">Real-time Face Detection & Attendance Tracking</p>
+        <button onclick="startCamera()" class="btn btn-light btn-lg mt-3">
             <i class="fas fa-video me-2"></i>Start Camera
         </button>
     </div>
@@ -216,9 +240,11 @@
         Live Camera Feed
     </h2>
     <div class="camera-container">
-        <div class="text-center">
-            <video id="video" autoplay playsinline style="width: 100%; max-width: 800px; border-radius: 15px;"></video>
-            <canvas id="canvas" style="display: none;"></canvas>
+        <div class="text-center position-relative">
+            <div style="position: relative; display: inline-block;">
+                <video id="video" autoplay playsinline style="width: 100%; max-width: 800px; border-radius: 15px;"></video>
+                <canvas id="overlayCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;"></canvas>
+            </div>
             <div class="mt-3">
                 <button id="captureBtn" class="btn btn-capture text-white" onclick="captureAndRecognize()" disabled>
                     <i class="fas fa-camera me-2"></i>Mark Attendance
@@ -237,28 +263,28 @@
 </section>
 
 <!-- HOW IT WORKS -->
-<section id="how-it-works" class="container my-5">
+<section class="container my-5">
     <h2 class="text-center mb-4">How It Works</h2>
     <div class="timeline">
         <div class="step">
             <i class="fas fa-camera fa-3x mb-3 text-primary"></i>
-            <h4>📸 Start Camera</h4>
-            <p>Allow camera access and position your face clearly</p>
+            <h4>1. Start Camera</h4>
+            <p>Allow camera access and face the webcam</p>
         </div>
         <div class="step">
-            <i class="fas fa-user-check fa-3x mb-3 text-success"></i>
-            <h4>👤 Click Capture</h4>
-            <p>Click "Mark Attendance" to capture your face</p>
+            <i class="fas fa-face-smile fa-3x mb-3 text-success"></i>
+            <h4>2. Face Detection</h4>
+            <p>AI detects your face in real-time</p>
         </div>
         <div class="step">
             <i class="fas fa-microchip fa-3x mb-3 text-info"></i>
-            <h4>🧠 AI Recognition</h4>
-            <p>System recognizes your face using AI</p>
+            <h4>3. Face Recognition</h4>
+            <p>System identifies who you are</p>
         </div>
         <div class="step">
             <i class="fas fa-save fa-3x mb-3 text-warning"></i>
-            <h4>📊 Save Record</h4>
-            <p>Attendance is saved with timestamp</p>
+            <h4>4. Mark Attendance</h4>
+            <p>Click button to mark attendance</p>
         </div>
     </div>
 </section>
@@ -299,15 +325,66 @@
 <footer class="bg-dark text-white text-center py-4">
     <div class="container">
         <p class="mb-0">© 2026 Face Recognition Attendance System | Powered by AI</p>
+        <small class="text-muted">Today's Date: <span id="todayDate"></span></small>
     </div>
 </footer>
 
 <script>
+// ==================== GLOBAL VARIABLES ====================
 let video = null;
 let stream = null;
 let isCameraRunning = false;
+let modelsLoaded = false;
+let faceMatcher = null;
+let registeredDescriptors = [];
+let registeredNames = [];
 
-// Start camera
+// ==================== LOAD FACE-API MODELS ====================
+async function loadModels() {
+    const statusDiv = document.getElementById('statusMessage');
+    statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin me-2"></i>Loading AI models... Please wait.</div>';
+    
+    try {
+        // Load models from CDN
+        await faceapi.nets.ssdMobilenetv1.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
+        await faceapi.nets.faceLandmark68Net.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
+        await faceapi.nets.faceRecognitionNet.loadFromUri('https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights');
+        
+        modelsLoaded = true;
+        statusDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle me-2"></i>AI models loaded successfully!</div>';
+        
+        // Load registered faces from server
+        await loadRegisteredFaces();
+        
+        setTimeout(() => {
+            statusDiv.innerHTML = '';
+        }, 3000);
+    } catch (error) {
+        console.error('Model load error:', error);
+        statusDiv.innerHTML = '<div class="alert alert-danger">Failed to load AI models. Please refresh the page.</div>';
+    }
+}
+
+// ==================== LOAD REGISTERED FACES FROM SERVER ====================
+async function loadRegisteredFaces() {
+    try {
+        const response = await fetch('/api/users');
+        const data = await response.json();
+        
+        if (data.users && data.users.length > 0) {
+            registeredNames = data.users.map(u => u.name);
+            registeredDescriptors = [];
+            
+            // For now, we'll use server-side recognition
+            // Client-side descriptors would need to be stored
+            console.log(`Loaded ${data.users.length} registered users`);
+        }
+    } catch (error) {
+        console.error('Error loading users:', error);
+    }
+}
+
+// ==================== START CAMERA ====================
 async function startCamera() {
     try {
         const constraints = {
@@ -331,13 +408,16 @@ async function startCamera() {
         
         showStatus('Camera started successfully!', 'success');
         
+        // Start face detection overlay
+        startFaceDetection();
+        
     } catch (error) {
         console.error('Camera error:', error);
-        showStatus('Unable to access camera. Please ensure you have granted camera permissions.', 'danger');
+        showStatus('Unable to access camera. Please grant camera permissions.', 'danger');
     }
 }
 
-// Stop camera
+// ==================== STOP CAMERA ====================
 function stopCamera() {
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
@@ -352,43 +432,111 @@ function stopCamera() {
     document.getElementById('startCameraBtn').style.display = 'inline-block';
     document.getElementById('stopCameraBtn').style.display = 'none';
     
+    // Clear overlay
+    const canvas = document.getElementById('overlayCanvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
     showStatus('Camera stopped', 'info');
 }
 
-// Capture and recognize face
+// ==================== FACE DETECTION OVERLAY ====================
+async function startFaceDetection() {
+    if (!modelsLoaded) {
+        setTimeout(startFaceDetection, 1000);
+        return;
+    }
+    
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('overlayCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    async function detect() {
+        if (!isCameraRunning || !video.videoWidth) {
+            requestAnimationFrame(detect);
+            return;
+        }
+        
+        // Set canvas size to match video
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        
+        // Detect faces
+        const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options())
+            .withFaceLandmarks()
+            .withFaceDescriptors();
+        
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw detections
+        detections.forEach(detection => {
+            const box = detection.detection.box;
+            const x = box.x;
+            const y = box.y;
+            const width = box.width;
+            const height = box.height;
+            
+            // Draw rectangle
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(x, y, width, height);
+            
+            // Draw label
+            ctx.fillStyle = '#00ff88';
+            ctx.font = '16px Arial';
+            ctx.fillText('Face Detected', x, y - 5);
+        });
+        
+        requestAnimationFrame(detect);
+    }
+    
+    detect();
+}
+
+// ==================== CAPTURE AND RECOGNIZE ====================
 async function captureAndRecognize() {
     if (!isCameraRunning || !video) {
         showStatus('Please start the camera first', 'warning');
         return;
     }
     
-    const canvas = document.getElementById('canvas');
-    const context = canvas.getContext('2d');
+    if (!modelsLoaded) {
+        showStatus('AI models are still loading. Please wait...', 'warning');
+        return;
+    }
     
-    // Set canvas dimensions to match video
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    
-    // Draw current video frame to canvas
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    
-    // Get image data as base64
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
-    
-    // Show loading state
     const captureBtn = document.getElementById('captureBtn');
     const originalText = captureBtn.innerHTML;
     captureBtn.innerHTML = '<span class="loading-spinner"></span> Recognizing...';
     captureBtn.disabled = true;
     
     try {
-        // Send to server for face detection/recognition
-        const response = await fetch('/api/recognize-face', {
+        // Detect face in current video frame
+        const detections = await faceapi.detectAllFaces(video, new faceapi.SsdMobilenetv1Options())
+            .withFaceLandmarks()
+            .withFaceDescriptors();
+        
+        if (detections.length === 0) {
+            showStatus('No face detected. Please position your face clearly.', 'warning');
+            captureBtn.innerHTML = originalText;
+            captureBtn.disabled = false;
+            return;
+        }
+        
+        // Get the face descriptor
+        const descriptor = detections[0].descriptor;
+        
+        // Send to server for recognition
+        const response = await fetch('/api/recognize-descriptor', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ image: imageData })
+            body: JSON.stringify({ 
+                descriptor: Array.from(descriptor),
+                image: await captureFrame() 
+            })
         });
         
         const result = await response.json();
@@ -398,7 +546,8 @@ async function captureAndRecognize() {
             document.getElementById('recognitionResult').innerHTML = `
                 <div class="alert alert-success">
                     <i class="fas fa-check-circle me-2"></i>
-                    <strong>${result.name || 'Student'}</strong> - Attendance marked at ${result.time || new Date().toLocaleTimeString()}
+                    <strong>${result.name || 'Student'}</strong><br>
+                    Attendance marked at ${new Date().toLocaleTimeString()}
                 </div>
             `;
             loadStatistics(); // Refresh stats
@@ -420,7 +569,17 @@ async function captureAndRecognize() {
     }
 }
 
-// Show status message
+// ==================== CAPTURE FRAME AS BASE64 ====================
+async function captureFrame() {
+    const canvas = document.createElement('canvas');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/jpeg', 0.8);
+}
+
+// ==================== SHOW STATUS ====================
 function showStatus(message, type) {
     const statusDiv = document.getElementById('statusMessage');
     statusDiv.innerHTML = `
@@ -436,7 +595,7 @@ function showStatus(message, type) {
     }, 5000);
 }
 
-// Export data
+// ==================== EXPORT DATA ====================
 async function exportData(format) {
     const statusDiv = document.getElementById('exportStatus');
     statusDiv.style.display = 'block';
@@ -468,7 +627,7 @@ async function exportData(format) {
     }
 }
 
-// Load statistics
+// ==================== LOAD STATISTICS ====================
 async function loadStatistics() {
     try {
         const response = await fetch('/api/stats');
@@ -482,7 +641,13 @@ async function loadStatistics() {
     }
 }
 
-// Scroll to top
+// ==================== DISPLAY TODAY'S DATE ====================
+function displayTodayDate() {
+    const today = new Date();
+    document.getElementById('todayDate').innerHTML = today.toLocaleDateString('en-US');
+}
+
+// ==================== SCROLL TO TOP ====================
 function setupScrollToTop() {
     const scrollBtn = document.getElementById('scrollTopBtn');
     window.addEventListener('scroll', () => {
@@ -497,14 +662,17 @@ function setupScrollToTop() {
     });
 }
 
-// Initialize
+// ==================== INITIALIZE ====================
 document.addEventListener('DOMContentLoaded', () => {
+    displayTodayDate();
     loadStatistics();
     setupScrollToTop();
     setInterval(loadStatistics, 10000);
+    loadModels();
 });
-</script>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+// Bootstrap JS
+document.write('<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"><\/script>');
+</script>
 </body>
 </html>
